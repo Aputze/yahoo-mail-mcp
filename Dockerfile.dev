@@ -1,0 +1,27 @@
+# Development Dockerfile with hot reload
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies (including dev dependencies)
+COPY package*.json ./
+COPY tsconfig.json ./
+RUN npm install
+
+# Copy source files
+COPY src/ ./src/
+
+# Create token directory
+RUN mkdir -p /app/.yahoo-mail-mcp && \
+    chmod 700 /app/.yahoo-mail-mcp
+
+# Set environment
+ENV NODE_ENV=development
+
+# Expose port
+EXPOSE 3000
+
+# Use tsx for development with watch mode
+CMD ["npm", "run", "dev"]
+

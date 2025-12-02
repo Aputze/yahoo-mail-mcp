@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  yahoo-mail-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yahoo-mail-mcp-server
+    restart: unless-stopped
+    
+    # Environment variables
+    environment:
+      # Required OAuth2 credentials
+      - YAHOO_CLIENT_ID=${YAHOO_CLIENT_ID}
+      - YAHOO_CLIENT_SECRET=${YAHOO_CLIENT_SECRET}
+      - YAHOO_REDIRECT_URI=${YAHOO_REDIRECT_URI:-http://localhost:3000/oauth/callback}
+      - YAHOO_EMAIL=${YAHOO_EMAIL}
+      
+      # Optional: Server configuration
+      - YAHOO_IMAP_HOST=${YAHOO_IMAP_HOST:-imap.mail.yahoo.com}
+      - YAHOO_IMAP_PORT=${YAHOO_IMAP_PORT:-993}
+      - YAHOO_CALDAV_URL=${YAHOO_CALDAV_URL:-https://caldav.calendar.yahoo.com}
+      - YAHOO_SMTP_HOST=${YAHOO_SMTP_HOST:-smtp.mail.yahoo.com}
+      - YAHOO_SMTP_PORT=${YAHOO_SMTP_PORT:-587}
+      
+      # MCP Server configuration
+      - MCP_SERVER_NAME=${MCP_SERVER_NAME:-yahoo-mail-mcp}
+      - MCP_SERVER_VERSION=${MCP_SERVER_VERSION:-0.1.0}
+      
+      # Token storage directory
+      - YAHOO_TOKEN_DIR=/app/.yahoo-mail-mcp
+      
+      # Node environment
+      - NODE_ENV=production
+    
+    # Volume for persistent token storage
+    volumes:
+      - yahoo-mcp-tokens:/app/.yahoo-mail-mcp
+    
+    # Port mapping (if OAuth callback server needed)
+    ports:
+      - "${OAUTH_PORT:-3000}:3000"
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('OK')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  yahoo-mcp-tokens:
+    driver: local
+

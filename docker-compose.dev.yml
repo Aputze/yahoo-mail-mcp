@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  yahoo-mail-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: yahoo-mail-mcp-dev
+    restart: unless-stopped
+    
+    # Development environment
+    environment:
+      - YAHOO_CLIENT_ID=${YAHOO_CLIENT_ID}
+      - YAHOO_CLIENT_SECRET=${YAHOO_CLIENT_SECRET}
+      - YAHOO_REDIRECT_URI=${YAHOO_REDIRECT_URI:-http://localhost:3000/oauth/callback}
+      - YAHOO_EMAIL=${YAHOO_EMAIL}
+      - NODE_ENV=development
+    
+    # Mount source code for live reload (if using nodemon)
+    volumes:
+      - ./src:/app/src
+      - ./dist:/app/dist
+      - yahoo-mcp-tokens:/app/.yahoo-mail-mcp
+      - /app/node_modules
+    
+    # Port mapping
+    ports:
+      - "3000:3000"
+    
+    # Override command for development
+    command: npm run dev
+
+volumes:
+  yahoo-mcp-tokens:
+    driver: local
+
